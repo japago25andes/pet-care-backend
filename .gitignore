@@ -1,5 +1,4 @@
 # Entornos y variables sensibles
-.env
 
 # Python
 __pycache__/
