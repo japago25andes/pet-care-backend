@@ -1,18 +1,19 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16
     container_name: peludos_db
     restart: always
-    environment:
-      POSTGRES_USER: peludos_user
-      POSTGRES_PASSWORD: peludos_pass
-      POSTGRES_DB: peludos_db
+    env_file:
+      - .env
     ports:
       - "5433:5432"
     volumes:
       - peludos_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   api:
     build: .
@@ -21,12 +22,14 @@ services:
     env_file:
       - .env
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     volumes:
       - .:/app
     depends_on:
-      - db
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      db:
+        condition: service_healthy
+    # En desarrollo: aplica migraciones y arranca con recarga automática
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 volumes:
   peludos_pgdata:

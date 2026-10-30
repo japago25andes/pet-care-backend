@@ -7,8 +7,7 @@ from app.config import settings
 from app.database import Base
 
 # Importamos los modelos para que Alembic los detecte al autogenerar migraciones.
-# Por ahora no hay ninguno; los iremos agregando aquí en cada fase.
-# from app.models.usuario import Usuario
+import app.models  # noqa: F401
 
 # Configuración de logging de Alembic
 config = context.config
