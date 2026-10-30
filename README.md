@@ -5,12 +5,12 @@ Backend de la plataforma de cuidado de mascotas: FastAPI + PostgreSQL + SQLAlche
 ## Arranque
 
 ```bash
-cp .env.example .env        # completa SECRET_KEY y la clave de Postgres
 docker compose up -d --build
 ```
 
+- El `.env` viene en el repo a propósito (proyecto de pruebas), así que no hay que configurar nada.
 - La API aplica las migraciones al arrancar.
-- Swagger: `http://localhost:8000/docs` (ReDoc en `/redoc`). Si el puerto 8000 está ocupado (pasa en Windows), pon `API_PORT=8001` en `.env`.
+- Swagger: `http://localhost:8001/docs` (ReDoc en `/redoc`). El puerto se cambia con `API_PORT` en `.env`.
 - Para crear un admin, primero registra el usuario y luego ejecuta: `docker compose exec api python -m app.scripts.crear_admin correo@ejemplo.com`.
 - Para crear una migración nueva: `docker compose exec api alembic revision --autogenerate -m "descripcion"`.
 
