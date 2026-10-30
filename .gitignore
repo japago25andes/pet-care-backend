@@ -1,4 +1,7 @@
 # Entornos y variables sensibles
+.env
+.env.*
+!.env.example
 
 # Python
 __pycache__/
@@ -24,5 +27,3 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
-
-# Alembic (dejamos las migraciones versionadas, pero ignoramos temporales si los hay)
