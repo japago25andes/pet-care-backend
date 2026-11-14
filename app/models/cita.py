@@ -25,3 +25,39 @@ class CitaVeterinaria(Base):
     mascota: Mapped[Mascota] = relationship()
     profesional: Mapped[Profesional] = relationship()
     veterinaria: Mapped[Veterinaria] = relationship()
+
+    @property
+    def nombre_mascota(self) -> str:
+        return self.mascota.nombre
+
+    @property
+    def especie_mascota(self) -> str:
+        return self.mascota.especie
+
+    @property
+    def alergias(self) -> str | None:
+        return self.mascota.alergias
+
+    @property
+    def condiciones_medicas(self) -> str | None:
+        return self.mascota.condiciones_medicas
+
+    @property
+    def id_usuario_dueno(self) -> int:
+        return self.mascota.id_usuario
+
+    @property
+    def nombre_dueno(self) -> str:
+        return self.mascota.dueno.nombre_completo
+
+    @property
+    def nombre_profesional(self) -> str:
+        return self.profesional.nombre_completo
+
+    @property
+    def id_usuario_veterinaria(self) -> int:
+        return self.veterinaria.id_usuario
+
+    @property
+    def nombre_veterinaria(self) -> str:
+        return self.veterinaria.nombre_comercial

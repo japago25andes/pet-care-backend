@@ -12,6 +12,15 @@ class MensajeCreate(BaseModel):
     id_cita: int | None = Field(None, description="Cita relacionada; debes ser parte de ella")
 
 
+class ConversacionOut(BaseModel):
+    id_usuario: int = Field(description="La otra persona de la conversación")
+    nombre_usuario: str
+    ultimo_mensaje: str
+    fecha_ultimo_mensaje: datetime
+    enviado_por_mi: bool = Field(description="True si el último mensaje lo envié yo")
+    no_leidos: int
+
+
 class MensajeOut(Salida):
     id_mensaje: int
     id_usuario_remitente: int

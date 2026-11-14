@@ -68,6 +68,14 @@ def search_veterinarias(
     return resultado
 
 
+def list_all_veterinarias(db: Session, page: Pagination, q: str | None = None) -> list[Veterinaria]:
+    """Todas las veterinarias, incluidas las inactivas."""
+    stmt = select(Veterinaria).order_by(Veterinaria.nombre_comercial, Veterinaria.id_veterinaria)
+    if q:
+        stmt = stmt.where(Veterinaria.nombre_comercial.icontains(q, autoescape=True))
+    return list(db.scalars(paginate(stmt, page)))
+
+
 def list_veterinarias_by_usuario(db: Session, id_usuario: int) -> list[Veterinaria]:
     stmt = select(Veterinaria).where(Veterinaria.id_usuario == id_usuario).order_by(Veterinaria.id_veterinaria)
     return list(db.scalars(stmt))

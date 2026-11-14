@@ -2,14 +2,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, status
 
-from app.core.deps import DB, Gestor, Page
+from app.core.deps import DB, Admin, Gestor, Page
 from app.core.docs import errores
 from app.core.errors import BadRequest, Forbidden
 from app.core.permissions import is_admin
 from app.crud import base
 from app.crud import veterinaria as veterinaria_crud
 from app.models.veterinaria import Veterinaria
-from app.schemas.veterinaria import VeterinariaCreate, VeterinariaOut, VeterinariaUpdate
+from app.schemas.veterinaria import VeterinariaAdminOut, VeterinariaCreate, VeterinariaOut, VeterinariaUpdate
 
 router = APIRouter(prefix="/veterinarias", tags=["Veterinarias"])
 
@@ -31,6 +31,22 @@ def listar_veterinarias(
     if (lat is None) != (lng is None):
         raise BadRequest("Envía lat y lng juntos")
     return veterinaria_crud.search_veterinarias(db, page, q=q, lat=lat, lng=lng, radio_km=radio_km)
+
+
+@router.get(
+    "/administracion",
+    response_model=list[VeterinariaAdminOut],
+    summary="Todas las veterinarias (admin)",
+    responses=errores(401, 403),
+)
+def listar_veterinarias_admin(
+    db: DB,
+    _: Admin,
+    page: Page,
+    q: Annotated[str | None, Query(description="Texto en el nombre comercial")] = None,
+):
+    """Incluye las inactivas y los datos del responsable."""
+    return veterinaria_crud.list_all_veterinarias(db, page, q=q)
 
 
 @router.get(

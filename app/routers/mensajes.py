@@ -4,7 +4,7 @@ from app.core.deps import DB, CurrentUser, Page
 from app.core.docs import errores
 from app.crud import mensaje as mensaje_crud
 from app.schemas.common import ConteoOut
-from app.schemas.mensaje import MensajeCreate, MensajeOut
+from app.schemas.mensaje import ConversacionOut, MensajeCreate, MensajeOut
 
 router = APIRouter(prefix="/mensajes", tags=["Mensajería"], responses=errores(401))
 
@@ -22,6 +22,12 @@ def enviar_mensaje(mensaje_in: MensajeCreate, db: DB, current_user: CurrentUser)
     Con `id_cita` debes ser parte de la cita; si no envías `id_veterinaria`, se toma de la cita.
     """
     return mensaje_crud.create_mensaje(db, current_user, mensaje_in)
+
+
+@router.get("/conversaciones", response_model=list[ConversacionOut], summary="Mis conversaciones")
+def listar_conversaciones(db: DB, current_user: CurrentUser, page: Page):
+    """Una fila por persona, con su último mensaje y los no leídos. Las más recientes primero."""
+    return mensaje_crud.list_conversaciones(db, current_user.id_usuario, page)
 
 
 @router.get("/recibidos", response_model=list[MensajeOut], summary="Bandeja de entrada")
@@ -45,8 +51,18 @@ def contar_no_leidos(db: DB, current_user: CurrentUser):
     summary="Conversación con un usuario",
 )
 def ver_conversacion(id_usuario: int, db: DB, current_user: CurrentUser, page: Page):
-    """Mensajes en ambos sentidos, del más antiguo al más reciente."""
+    """Los mensajes más recientes en ambos sentidos, ordenados del más antiguo al más nuevo."""
     return mensaje_crud.list_conversacion(db, current_user.id_usuario, id_usuario, page)
+
+
+@router.patch(
+    "/conversacion/{id_usuario}/leida",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Marcar conversación como leída",
+)
+def marcar_conversacion_leida(id_usuario: int, db: DB, current_user: CurrentUser):
+    """Marca como leídos todos los mensajes que ese usuario me envió."""
+    mensaje_crud.marcar_conversacion_leida(db, current_user.id_usuario, id_usuario)
 
 
 @router.patch(

@@ -1,4 +1,4 @@
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, case, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.core.deps import Pagination
@@ -61,9 +61,61 @@ def list_conversacion(db: Session, id_usuario: int, id_otro: int, page: Paginati
                 and_(Mensaje.id_usuario_remitente == id_otro, Mensaje.id_usuario_destinatario == id_usuario),
             )
         )
-        .order_by(Mensaje.fecha_envio)
+        .order_by(Mensaje.fecha_envio.desc(), Mensaje.id_mensaje.desc())
     )
-    return list(db.scalars(paginate(stmt, page)))
+    # La página trae los más recientes; se devuelven en orden cronológico para pintar el hilo.
+    return list(reversed(db.scalars(paginate(stmt, page)).all()))
+
+
+def marcar_conversacion_leida(db: Session, id_usuario: int, id_otro: int) -> None:
+    db.execute(
+        update(Mensaje)
+        .where(
+            Mensaje.id_usuario_destinatario == id_usuario,
+            Mensaje.id_usuario_remitente == id_otro,
+            Mensaje.leido.is_(False),
+        )
+        .values(leido=True)
+    )
+    db.commit()
+
+
+def list_conversaciones(db: Session, id_usuario: int, page: Pagination) -> list[dict]:
+    """Una fila por cada persona con la que hablo: su último mensaje y cuántos no he leído."""
+    otro = case(
+        (Mensaje.id_usuario_remitente == id_usuario, Mensaje.id_usuario_destinatario),
+        else_=Mensaje.id_usuario_remitente,
+    )
+    ultimos = (
+        select(Mensaje.id_mensaje)
+        .where(or_(Mensaje.id_usuario_remitente == id_usuario, Mensaje.id_usuario_destinatario == id_usuario))
+        .distinct(otro)
+        .order_by(otro, Mensaje.fecha_envio.desc(), Mensaje.id_mensaje.desc())
+    )
+    stmt = select(Mensaje).where(Mensaje.id_mensaje.in_(ultimos)).order_by(Mensaje.fecha_envio.desc())
+    no_leidos = dict(
+        db.execute(
+            select(Mensaje.id_usuario_remitente, func.count())
+            .where(Mensaje.id_usuario_destinatario == id_usuario, Mensaje.leido.is_(False))
+            .group_by(Mensaje.id_usuario_remitente)
+        ).all()
+    )
+
+    conversaciones = []
+    for mensaje in db.scalars(paginate(stmt, page)):
+        enviado_por_mi = mensaje.id_usuario_remitente == id_usuario
+        contraparte = mensaje.destinatario if enviado_por_mi else mensaje.remitente
+        conversaciones.append(
+            {
+                "id_usuario": contraparte.id_usuario,
+                "nombre_usuario": contraparte.nombre_completo,
+                "ultimo_mensaje": mensaje.contenido,
+                "fecha_ultimo_mensaje": mensaje.fecha_envio,
+                "enviado_por_mi": enviado_por_mi,
+                "no_leidos": no_leidos.get(contraparte.id_usuario, 0),
+            }
+        )
+    return conversaciones
 
 
 def count_no_leidos(db: Session, id_usuario: int) -> int:

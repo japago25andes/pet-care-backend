@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 from app.models.carrito import CarritoCompras, DetalleCarrito
+from app.models.usuario import Usuario
 from app.models.veterinaria import Veterinaria
 
 
@@ -26,7 +27,16 @@ class Pedido(Base):
 
     carrito: Mapped[CarritoCompras] = relationship()
     veterinaria: Mapped[Veterinaria] = relationship()
+    comprador: Mapped[Usuario] = relationship()
 
     @property
     def detalles(self) -> list[DetalleCarrito]:
         return self.carrito.detalles
+
+    @property
+    def nombre_comprador(self) -> str:
+        return self.comprador.nombre_completo
+
+    @property
+    def nombre_veterinaria(self) -> str:
+        return self.veterinaria.nombre_comercial

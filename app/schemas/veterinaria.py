@@ -41,3 +41,10 @@ class VeterinariaOut(Salida):
     calificacion_promedio: float
     activo: bool
     distancia_km: float | None = Field(None, description="Solo en búsquedas con lat/lng")
+
+
+class VeterinariaAdminOut(VeterinariaOut):
+    """Vista para administradores: incluye los datos del responsable."""
+
+    nombre_responsable: str
+    correo_responsable: str

@@ -60,6 +60,8 @@ app = FastAPI(
     openapi_tags=TAGS,
     swagger_ui_parameters={"persistAuthorization": True, "docExpansion": "none", "filter": True},
     redoc_url=None,
+    # operationId limpio: el cliente del front se genera con estos nombres
+    generate_unique_id_function=lambda route: route.name,
 )
 
 # FastAPI usa redoc@next, cuya versión beta ya no carga como script clásico (página en blanco).

@@ -1,9 +1,10 @@
 from decimal import Decimal
 
 from sqlalchemy import Boolean, ForeignKey, Numeric, String, Text, true
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.models.usuario import Usuario
 
 
 class Veterinaria(Base):
@@ -21,3 +22,13 @@ class Veterinaria(Base):
     longitud: Mapped[Decimal | None] = mapped_column(Numeric(11, 8))
     calificacion_promedio: Mapped[Decimal] = mapped_column(Numeric(3, 2), server_default="0")
     activo: Mapped[bool] = mapped_column(Boolean, server_default=true())
+
+    responsable: Mapped[Usuario] = relationship()
+
+    @property
+    def nombre_responsable(self) -> str:
+        return self.responsable.nombre_completo
+
+    @property
+    def correo_responsable(self) -> str:
+        return self.responsable.correo_electronico

@@ -4,6 +4,8 @@ Backend de la plataforma de cuidado de mascotas: FastAPI + PostgreSQL + SQLAlche
 
 ## Arranque
 
+### Producción
+
 ```bash
 docker compose up -d --build
 ```
@@ -11,8 +13,19 @@ docker compose up -d --build
 - El `.env` viene en el repo a propósito (proyecto de pruebas), así que no hay que configurar nada.
 - La API aplica las migraciones al arrancar.
 - Swagger: `http://localhost:8001/docs` (ReDoc en `/redoc`). El puerto se cambia con `API_PORT` en `.env`.
+- Postgres no se publica fuera de Docker; solo la API se conecta a él.
+- Para cargar datos de ejemplo: `docker compose exec api python -m app.scripts.cargar_demo` (los usuarios de prueba están en ese script).
 - Para crear un admin, primero registra el usuario y luego ejecuta: `docker compose exec api python -m app.scripts.crear_admin correo@ejemplo.com`.
-- Para crear una migración nueva: `docker compose exec api alembic revision --autogenerate -m "descripcion"`.
+
+### Desarrollo
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build
+```
+
+- Monta el código en el contenedor y arranca uvicorn con recarga automática.
+- Publica Postgres en el puerto `5433` de tu máquina.
+- Para crear una migración nueva: `docker compose -f docker-compose.dev.yml exec api alembic revision --autogenerate -m "descripcion"`.
 
 ## Reglas generales
 
@@ -62,6 +75,7 @@ docker compose up -d --build
 | Método | Ruta | Quién | Comportamiento |
 |---|---|---|---|
 | GET | `/veterinarias` | 🔓 | Solo las activas. Con `q` busca por nombre. Con `lat`, `lng` y `radio_km` (por defecto 10) devuelve las cercanas con `distancia_km`. Sin coordenadas ordena por calificación. |
+| GET | `/veterinarias/administracion` | 👑 | Todas, incluidas las inactivas, con los datos del responsable. Filtro `q`. |
 | GET | `/veterinarias/mias` | 🏥 | Las mías, incluidas las inactivas. |
 | POST | `/veterinarias` | 🏥 | Quien la crea queda como responsable. |
 | GET | `/veterinarias/{id}` | 🔓 | Devuelve 404 si está inactiva. |
@@ -131,10 +145,12 @@ Crear, editar o borrar una reseña recalcula `calificacion_promedio` de la veter
 | Método | Ruta | Comportamiento |
 |---|---|---|
 | POST | `/mensajes` | 🔑 Un cliente solo puede escribir a usuarios `veterinaria` o `admin`. Con `id_cita` debes ser parte de la cita, y la veterinaria se completa sola. |
+| GET | `/mensajes/conversaciones` | 🔑 Una fila por persona, con su último mensaje y los no leídos. |
 | GET | `/mensajes/recibidos` | 🔑 Filtro `solo_no_leidos`. |
 | GET | `/mensajes/enviados` | 🔑 Mensajes que envié. |
 | GET | `/mensajes/no-leidos` | 🔑 Devuelve `{"total": n}`. |
-| GET | `/mensajes/conversacion/{id_usuario}` | 🔑 Ambos sentidos, en orden cronológico. |
+| GET | `/mensajes/conversacion/{id_usuario}` | 🔑 Los más recientes en ambos sentidos, en orden cronológico. |
+| PATCH | `/mensajes/conversacion/{id_usuario}/leida` | 🔑 Marca como leídos los mensajes que ese usuario me envió. |
 | PATCH | `/mensajes/{id}/leido` | 🔑 Solo el destinatario. |
 
 ## Cambios respecto al modelo ER

@@ -35,3 +35,12 @@ class CitaOut(Salida):
     estado: str
     notas: str | None
     fecha_creacion: datetime
+    nombre_mascota: str
+    especie_mascota: str
+    alergias: str | None
+    condiciones_medicas: str | None
+    id_usuario_dueno: int
+    nombre_dueno: str
+    nombre_profesional: str
+    id_usuario_veterinaria: int
+    nombre_veterinaria: str

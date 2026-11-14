@@ -35,4 +35,6 @@ class PedidoOut(Salida):
     direccion_entrega: str
     notas: str | None
     fecha_entrega: datetime | None
+    nombre_comprador: str
+    nombre_veterinaria: str
     detalles: list[ItemPedidoOut]

@@ -2,9 +2,10 @@ from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import Boolean, Date, ForeignKey, Index, Numeric, String, Text, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.models.usuario import Usuario
 
 
 class Mascota(Base):
@@ -28,3 +29,5 @@ class Mascota(Base):
     alergias: Mapped[str | None] = mapped_column(Text, nullable=True)
     condiciones_medicas: Mapped[str | None] = mapped_column(Text, nullable=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    dueno: Mapped[Usuario] = relationship()

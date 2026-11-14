@@ -5,8 +5,7 @@ services:
     restart: always
     env_file:
       - .env
-    ports:
-      - "5433:5432"
+    # Sin puertos publicados: solo la API llega a la base, por la red interna de Docker
     volumes:
       - peludos_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -23,13 +22,10 @@ services:
       - .env
     ports:
       - "${API_PORT:-8000}:8000"
-    volumes:
-      - .:/app
     depends_on:
       db:
         condition: service_healthy
-    # En desarrollo: aplica migraciones y arranca con recarga automática
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    # Usa el CMD del Dockerfile: aplica migraciones y arranca uvicorn sin recarga
 
 volumes:
   peludos_pgdata:
